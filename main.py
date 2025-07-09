@@ -97,11 +97,13 @@ known_faces = load_known_faces()
 if not known_faces:
     st.warning("⚠️ Нет доступных лиц для сравнения.")
 
-# --- HTTPS snapshot URL ---
-CAMERA_USER = "admin"
-CAMERA_PASS = "Shagzod1$"
-CAMERA_IP = "192.168.0.150"
-SNAPSHOT_URL = f"http://{CAMERA_IP}/ISAPI/Streaming/channels/101/picture"
+# --- Публичный snapshot URL ---
+CAMERA_USER = os.getenv("CAMERA_USER", "admin")
+CAMERA_PASS = os.getenv("CAMERA_PASS", "Shagzod1$")
+CAMERA_HOST = os.getenv("CAMERA_HOST", "your.public.ip.address")
+CAMERA_PORT = os.getenv("CAMERA_PORT", "80")
+CAMERA_PATH = os.getenv("CAMERA_PATH", "/ISAPI/Streaming/channels/101/picture")
+SNAPSHOT_URL = f"http://{CAMERA_HOST}:{CAMERA_PORT}{CAMERA_PATH}"
 
 
 def get_frame_from_camera():
