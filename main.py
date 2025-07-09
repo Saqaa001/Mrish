@@ -103,8 +103,8 @@ CAMERA_PASS = os.getenv("CAMERA_PASS", "Shagzod1$")
 CAMERA_HOST = os.getenv("CAMERA_HOST", "your.public.ip.address")
 CAMERA_PORT = os.getenv("CAMERA_PORT", "80")
 CAMERA_PATH = os.getenv("CAMERA_PATH", "/ISAPI/Streaming/channels/101/picture")
-SNAPSHOT_URL = f"https://{CAMERA_HOST}:{CAMERA_PORT}{CAMERA_PATH}"
-
+CAMERA_PROTO = os.getenv("CAMERA_PROTO", "http")
+SNAPSHOT_URL = f"{CAMERA_PROTO}://{CAMERA_HOST}:{CAMERA_PORT}{CAMERA_PATH}"
 
 
 def get_frame_from_camera():
