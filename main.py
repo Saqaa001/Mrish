@@ -99,13 +99,14 @@ if not known_faces:
 ip_url = "http://192.168.0.150/ISAPI/Streaming/channels/101/picture"
 
 def get_frame_from_camera():
-    cap = cv2.VideoCapture(ip_url, cv2.CAP_FFMPEG)
-    for _ in range(10):
-        ret, frame = cap.read()
-        if ret and frame is not None:
-            cap.release()
-            return frame
-        time.sleep(0.2)
+    response = requests.get(ip_url, timeout=5)
+    if response.status_code == 200:
+        return Image.open(io.BytesIO(response.content))
+    return None
+    if ret and frame is not None:
+        cap.release()
+        return frame
+    time.sleep(0.2)
     cap.release()
     return None
 
