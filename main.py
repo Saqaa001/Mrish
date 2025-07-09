@@ -4,7 +4,7 @@ from insightface.app import FaceAnalysis
 from PIL import Image
 import numpy as np
 from io import BytesIO
-import requests
+import cv2
 from datetime import datetime, date
 import time
 from telegram import Bot, InputFile
@@ -13,7 +13,6 @@ import asyncio
 import threading
 import os
 from dotenv import load_dotenv
-from requests.auth import HTTPBasicAuth
 
 # --- Загрузка секретов ---
 load_dotenv()
@@ -97,41 +96,26 @@ known_faces = load_known_faces()
 if not known_faces:
     st.warning("⚠️ Нет доступных лиц для сравнения.")
 
-# --- Публичный snapshot URL ---
-CAMERA_USER = os.getenv("CAMERA_USER", "admin")
-CAMERA_PASS = os.getenv("CAMERA_PASS", "Shagzod1$")
-CAMERA_HOST = os.getenv("CAMERA_HOST", "your.public.ip.address")
-CAMERA_PORT = os.getenv("CAMERA_PORT", "80")
-CAMERA_PATH = os.getenv("CAMERA_PATH", "/ISAPI/Streaming/channels/101/picture")
-CAMERA_PROTO = os.getenv("CAMERA_PROTO", "http")
-SNAPSHOT_URL = f"{CAMERA_PROTO}://{CAMERA_HOST}:{CAMERA_PORT}{CAMERA_PATH}"
-
+ip_url = "rtsp://admin:Shagzod1$@192.168.0.150:554/Streaming/Channels/101"
 
 def get_frame_from_camera():
-    try:
-        response = requests.get(
-            SNAPSHOT_URL,
-            auth=HTTPBasicAuth(CAMERA_USER, CAMERA_PASS),
-            timeout=5,
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
-        if response.status_code == 200:
-            img = Image.open(BytesIO(response.content)).convert('RGB')
-            return np.array(img)
-        else:
-            st.error(f"❌ HTTP ошибка: {response.status_code}")
-            return None
-    except Exception as e:
-        st.error(f"❌ Камера не отвечает: {e}")
-        return None
+    cap = cv2.VideoCapture(ip_url, cv2.CAP_FFMPEG)
+    for _ in range(10):
+        ret, frame = cap.read()
+        if ret and frame is not None:
+            cap.release()
+            return frame
+        time.sleep(0.2)
+    cap.release()
+    return None
 
-# --- Основная логика: распознавание и запись смены ---
 def recognize_and_process(is_exit=False):
     frame = get_frame_from_camera()
     if frame is None:
+        st.error("❌ Камера не отвечает.")
         return
 
-    img = frame
+    img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     st.image(img, caption="📷 Захвачено", use_column_width=True)
 
     faces = analyzer.get(img)
