@@ -1,0 +1,8 @@
+streamlit
+supabase
+Pillow
+numpy
+opencv-python-headless
+python-telegram-bot==20.8
+python-dotenv
+insightface==0.7.3
