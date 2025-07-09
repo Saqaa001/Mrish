@@ -13,7 +13,7 @@ import asyncio
 import threading
 import os
 from dotenv import load_dotenv
-
+from urllib.parse import quote_plus
 # --- Загрузка секретов ---
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
