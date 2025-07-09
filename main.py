@@ -96,7 +96,7 @@ known_faces = load_known_faces()
 if not known_faces:
     st.warning("⚠️ Нет доступных лиц для сравнения.")
 
-ip_url = "rtsp://admin:Shagzod1$@192.168.0.150:554/Streaming/Channels/101"
+ip_url = "http://192.168.0.150/ISAPI/Streaming/channels/101/picture"
 
 def get_frame_from_camera():
     cap = cv2.VideoCapture(ip_url, cv2.CAP_FFMPEG)
