@@ -4,7 +4,7 @@ from insightface.app import FaceAnalysis
 from PIL import Image
 import numpy as np
 from io import BytesIO
-import cv2
+import requests
 from datetime import datetime, date
 import time
 from telegram import Bot, InputFile
@@ -13,6 +13,7 @@ import asyncio
 import threading
 import os
 from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
 
 # --- Загрузка секретов ---
 load_dotenv()
@@ -96,26 +97,38 @@ known_faces = load_known_faces()
 if not known_faces:
     st.warning("⚠️ Нет доступных лиц для сравнения.")
 
-ip_url = "rtsp://admin:Shagzod1$@192.168.0.150:554/Streaming/Channels/101"
+# --- HTTPS snapshot URL ---
+CAMERA_USER = "admin"
+CAMERA_PASS = "Shagzod1$"
+CAMERA_IP = "192.168.0.150"
+SNAPSHOT_URL = f"http://{CAMERA_IP}/ISAPI/Streaming/channels/101/picture"
+
 
 def get_frame_from_camera():
-    cap = cv2.VideoCapture(ip_url, cv2.CAP_FFMPEG)
-    for _ in range(10):
-        ret, frame = cap.read()
-        if ret and frame is not None:
-            cap.release()
-            return frame
-        time.sleep(0.2)
-    cap.release()
-    return None
+    try:
+        response = requests.get(
+            SNAPSHOT_URL,
+            auth=HTTPBasicAuth(CAMERA_USER, CAMERA_PASS),
+            timeout=5,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        if response.status_code == 200:
+            img = Image.open(BytesIO(response.content)).convert('RGB')
+            return np.array(img)
+        else:
+            st.error(f"❌ HTTP ошибка: {response.status_code}")
+            return None
+    except Exception as e:
+        st.error(f"❌ Камера не отвечает: {e}")
+        return None
 
+# --- Основная логика: распознавание и запись смены ---
 def recognize_and_process(is_exit=False):
     frame = get_frame_from_camera()
     if frame is None:
-        st.error("❌ Камера не отвечает.")
         return
 
-    img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    img = frame
     st.image(img, caption="📷 Захвачено", use_column_width=True)
 
     faces = analyzer.get(img)
